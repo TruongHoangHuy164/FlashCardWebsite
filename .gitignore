@@ -31,3 +31,6 @@ build/
 
 ### VS Code ###
 .vscode/
+
+# bỏ qua file application.properties
+application.properties

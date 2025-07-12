@@ -10,6 +10,8 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Optional;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 
 @Controller
 @RequestMapping("/decks")
@@ -19,14 +21,14 @@ public class DeckController {
     private final UserService userService;
 
     @GetMapping
-    public String listDecks(@RequestParam(required = false) String success, 
-                           @RequestParam(required = false) String error, 
-                           Model model) {
+    public String listDecks(@RequestParam(required = false) String success,
+                            @RequestParam(required = false) String error,
+                            Model model) {
         try {
             // Lấy tất cả deck từ database
             List<Deck> decks = deckService.findPublicDecks();
             model.addAttribute("decks", decks);
-            
+
             // Xử lý thông báo
             if (success != null) {
                 model.addAttribute("success", success);
@@ -34,18 +36,18 @@ public class DeckController {
             if (error != null) {
                 model.addAttribute("error", error);
             }
-            
-            return "deck-list";
+
+            return "decks/deck-list";
         } catch (Exception e) {
             model.addAttribute("error", "Có lỗi xảy ra khi tải danh sách bộ thẻ: " + e.getMessage());
-            return "deck-list";
+            return "decks/deck-list";
         }
     }
 
     @GetMapping("/create")
     public String showCreateForm(Model model) {
         model.addAttribute("deck", new Deck());
-        return "deck-create";
+        return "decks/deck-create";
     }
 
     @PostMapping("/create")
@@ -57,7 +59,8 @@ public class DeckController {
                 deck.setUser(userOpt.get());
                 deck.setIsPublic(true);
                 deckService.save(deck);
-                return "redirect:/decks?success=Bộ thẻ đã được tạo thành công!";
+                String message = URLEncoder.encode("Bộ thẻ đã được tạo thành công!", StandardCharsets.UTF_8);
+                return "redirect:/decks?success=" + message;
             } else {
                 return "redirect:/decks?error=Không tìm thấy người dùng!";
             }
@@ -76,8 +79,7 @@ public class DeckController {
             } else {
                 return "redirect:/decks?error=Không tìm thấy bộ thẻ!";
             }
-        } catch (Exception e) {
-            return "redirect:/decks?error=Có lỗi xảy ra: " + e.getMessage();
+        } catch (Exception e) {return "redirect:/decks?error=Có lỗi xảy ra: " + e.getMessage();
         }
     }
 
@@ -129,4 +131,4 @@ public class DeckController {
             return "redirect:/decks?error=Có lỗi xảy ra khi xóa: " + e.getMessage();
         }
     }
-} 
+}

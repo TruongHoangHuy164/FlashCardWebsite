@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chi tiết bộ thẻ - Flashcard App</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .navbar-brand {
+            font-weight: bold;
+            font-size: 1.5rem;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+        }
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+        }
+        .deck-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 0;
+        }
+        .flashcard {
+            perspective: 1000px;
+            height: 300px;
+        }
+        .flashcard-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+            cursor: pointer;
+        }
+        .flashcard.flipped .flashcard-inner {
+            transform: rotateY(180deg);
+        }
+        .flashcard-front, .flashcard-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        }
+        .flashcard-front {
+            background: white;
+            color: #333;
+        }
+        .flashcard-back {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            transform: rotateY(180deg);
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="fas fa-brain me-2"></i>Flashcard App
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/decks">Bộ thẻ</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/profile">Hồ sơ</a>
+                    </li>
+                </ul>
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/logout">Đăng xuất</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Deck Header -->
+    <section class="deck-header">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h1 class="fw-bold" th:text="${deck.title}">Tên bộ thẻ</h1>
+                    <p class="lead mb-0" th:text="${deck.description}">Mô tả bộ thẻ</p>
+                </div>
+                <div class="col-md-4 text-md-end">
+                    <div class="d-flex gap-2 justify-content-md-end">
+                        <button class="btn btn-light" onclick="startStudy()">
+                            <i class="fas fa-play me-2"></i>Bắt đầu học
+                        </button>
+                        <button class="btn btn-outline-light" onclick="addCard()">
+                            <i class="fas fa-plus me-2"></i>Thêm thẻ
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div class="container mt-4">
+        <!-- Study Mode -->
+        <div id="studyMode" class="row" style="display: none;">
+            <div class="col-md-8 mx-auto">
+                <div class="flashcard" onclick="flipCard()">
+                    <div class="flashcard-inner">
+                        <div class="flashcard-front">
+                            <h3 id="cardTerm">Nhấn để bắt đầu học</h3>
+                        </div>
+                        <div class="flashcard-back">
+                            <h3 id="cardDefinition">Định nghĩa</h3>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="text-center mt-4">
+                    <div class="btn-group" role="group">
+                        <button class="btn btn-danger" onclick="markAsHard()">
+                            <i class="fas fa-times me-2"></i>Khó
+                        </button>
+                        <button class="btn btn-warning" onclick="markAsMedium()">
+                            <i class="fas fa-minus me-2"></i>Trung bình
+                        </button>
+                        <button class="btn btn-success" onclick="markAsEasy()">
+                            <i class="fas fa-check me-2"></i>Dễ
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="text-center mt-3">
+                    <small class="text-muted">Thẻ <span id="currentCard">0</span> / <span id="totalCards">0</span></small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card List -->
+        <div id="cardList">
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <h4>Danh sách thẻ</h4>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <button class="btn btn-primary" onclick="showStudyMode()">
+                        <i class="fas fa-play me-2"></i>Học ngay
+                    </button>
+                </div>
+            </div>
+            
+            <div class="row" th:if="${#lists.isEmpty(deck.flashcards)}">
+                <div class="col-12 text-center py-5">
+                    <i class="fas fa-cards-blank fa-4x text-muted mb-3"></i>
+                    <h4 class="text-muted">Chưa có thẻ nào</h4>
+                    <p class="text-muted">Thêm thẻ đầu tiên để bắt đầu học</p>
+                    <button class="btn btn-primary" onclick="addCard()">
+                        <i class="fas fa-plus me-2"></i>Thêm thẻ đầu tiên
+                    </button>
+                </div>
+            </div>
+            
+            <div class="row g-3" th:if="${!#lists.isEmpty(deck.flashcards)}">
+                <div class="col-md-6" th:each="card : ${deck.flashcards}">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <h6 class="card-title mb-0" th:text="${card.term}">Thuật ngữ</h6>
+                                <div class="dropdown">
+                                    <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="dropdown" aria-label="Tùy chọn">
+                                        <i class="fas fa-ellipsis-v"></i>
+                                    </button>
+                                    <ul class="dropdown-menu">
+                                        <li><a class="dropdown-item" href="#">
+                                            <i class="fas fa-edit me-2"></i>Chỉnh sửa
+                                        </a></li>
+                                        <li><a class="dropdown-item" href="#">
+                                            <i class="fas fa-trash me-2"></i>Xóa
+                                        </a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <p class="card-text text-muted" th:text="${card.definition}">Định nghĩa</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function showStudyMode() {
+            document.getElementById('studyMode').style.display = 'block';
+            document.getElementById('cardList').style.display = 'none';
+        }
+        
+        function flipCard() {
+            const flashcard = document.querySelector('.flashcard');
+            flashcard.classList.toggle('flipped');
+        }
+        
+        function markAsHard() {
+            // Logic xử lý thẻ khó
+            nextCard();
+        }
+        
+        function markAsMedium() {
+            // Logic xử lý thẻ trung bình
+            nextCard();
+        }
+        
+        function markAsEasy() {
+            // Logic xử lý thẻ dễ
+            nextCard();
+        }
+        
+        function nextCard() {
+            // Logic chuyển thẻ tiếp theo
+            const flashcard = document.querySelector('.flashcard');
+            flashcard.classList.remove('flipped');
+        }
+        
+        function addCard() {
+            // Logic thêm thẻ mới
+            alert('Chức năng thêm thẻ sẽ được phát triển');
+        }
+    </script>
+</body>
+</html> 

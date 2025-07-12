@@ -20,24 +20,92 @@ public class UserController {
 
     @PostMapping("/register")
     public String register(@ModelAttribute User user, Model model) {
-        if (userService.findByUsername(user.getUsername()).isPresent() || userService.findByEmail(user.getEmail()).isPresent()) {
-            model.addAttribute("error", "Tên đăng nhập hoặc email đã tồn tại!");
+        try {
+            // Kiểm tra username đã tồn tại
+            if (userService.findByUsername(user.getUsername()).isPresent()) {
+                model.addAttribute("error", "Tên đăng nhập đã tồn tại!");
+                return "register";
+            }
+            
+            // Kiểm tra email đã tồn tại
+            if (userService.findByEmail(user.getEmail()).isPresent()) {
+                model.addAttribute("error", "Email đã tồn tại!");
+                return "register";
+            }
+            
+            // Lưu user mới
+            userService.save(user);
+            return "redirect:/login?success=Đăng ký thành công! Vui lòng đăng nhập.";
+            
+        } catch (Exception e) {
+            model.addAttribute("error", "Có lỗi xảy ra khi đăng ký: " + e.getMessage());
             return "register";
         }
-        userService.save(user);
-        return "redirect:/login";
     }
 
     @GetMapping("/login")
-    public String showLoginForm() {
+    public String showLoginForm(@RequestParam(required = false) String success, Model model) {
+        if (success != null) {
+            model.addAttribute("success", success);
+        }
         return "login";
     }
 
-    // Đơn giản: chỉ hiển thị profile, chưa xử lý session
+    @PostMapping("/login")
+    public String login(@RequestParam String username, @RequestParam String password, Model model) {
+        try {
+            // Tìm user trong database
+            var userOpt = userService.findByUsername(username);
+            
+            if (userOpt.isPresent()) {
+                User user = userOpt.get();
+                // Kiểm tra password (trong thực tế nên hash password)
+                if (user.getPassword().equals(password)) {
+                    // TODO: Tạo session cho user
+                    return "redirect:/decks";
+                } else {
+                    model.addAttribute("error", "Mật khẩu không đúng!");
+                }
+            } else {
+                model.addAttribute("error", "Tên đăng nhập không tồn tại!");
+            }
+            
+            return "login";
+            
+        } catch (Exception e) {
+            model.addAttribute("error", "Có lỗi xảy ra khi đăng nhập: " + e.getMessage());
+            return "login";
+        }
+    }
+
+    @GetMapping("/logout")
+    public String logout() {
+        // TODO: Xóa session
+        return "redirect:/";
+    }
+
     @GetMapping("/profile")
     public String showProfile(Model model) {
-        // TODO: Lấy user từ session
-        model.addAttribute("user", null);
-        return "profile";
+        try {
+            // TODO: Lấy user từ session
+            // Tạm thời lấy user đầu tiên trong database
+            var userOpt = userService.findById(1);
+            if (userOpt.isPresent()) {
+                model.addAttribute("user", userOpt.get());
+            } else {
+                // Tạo user mẫu nếu không có user nào
+                User sampleUser = new User();
+                sampleUser.setId(1);
+                sampleUser.setUsername("demo_user");
+                sampleUser.setEmail("demo@example.com");
+                sampleUser.setAvatarUrl("https://via.placeholder.com/100x100/667eea/ffffff?text=U");
+                model.addAttribute("user", sampleUser);
+            }
+            return "profile";
+            
+        } catch (Exception e) {
+            model.addAttribute("error", "Có lỗi xảy ra: " + e.getMessage());
+            return "profile";
+        }
     }
 } 

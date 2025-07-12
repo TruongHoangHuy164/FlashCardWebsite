@@ -27,4 +27,8 @@ public class DeckService {
     public Deck save(Deck deck) {
         return deckRepository.save(deck);
     }
+
+    public void deleteById(Integer id) {
+        deckRepository.deleteById(id);
+    }
 } 

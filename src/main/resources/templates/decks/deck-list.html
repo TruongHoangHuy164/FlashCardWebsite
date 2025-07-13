@@ -230,6 +230,9 @@
                 title: 'Thành công',
                 text: successMsg,
                 confirmButtonColor: '#667eea'
+            }).then(() => {
+                // Xóa query (?success=...) khỏi URL sau khi hiển thị
+                window.history.replaceState(null, '', window.location.pathname);
             });
         }
 
@@ -239,6 +242,8 @@
                 title: 'Lỗi',
                 text: errorMsg,
                 confirmButtonColor: '#dc3545'
+            }).then(() => {
+                window.history.replaceState(null, '', window.location.pathname);
             });
         }
     </script>

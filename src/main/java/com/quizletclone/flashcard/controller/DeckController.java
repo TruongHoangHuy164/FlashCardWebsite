@@ -8,10 +8,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+
 import java.util.List;
 import java.util.Optional;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
+
+import static com.quizletclone.flashcard.util.UrlHelper.redirectWithMessage;
 
 @Controller
 @RequestMapping("/decks")
@@ -25,11 +26,9 @@ public class DeckController {
                             @RequestParam(required = false) String error,
                             Model model) {
         try {
-            // Lấy tất cả deck từ database
             List<Deck> decks = deckService.findPublicDecks();
             model.addAttribute("decks", decks);
 
-            // Xử lý thông báo
             if (success != null) {
                 model.addAttribute("success", success);
             }
@@ -39,8 +38,7 @@ public class DeckController {
 
             return "decks/deck-list";
         } catch (Exception e) {
-            model.addAttribute("error", "Có lỗi xảy ra khi tải danh sách bộ thẻ: " + e.getMessage());
-            return "decks/deck-list";
+            return redirectWithMessage("/decks", "error", "Có lỗi xảy ra khi tải danh sách bộ thẻ: " + e.getMessage());
         }
     }
 
@@ -53,19 +51,17 @@ public class DeckController {
     @PostMapping("/create")
     public String createDeck(@ModelAttribute Deck deck) {
         try {
-            // TODO: Lấy user từ session, tạm thời lấy user đầu tiên
-            Optional<User> userOpt = userService.findById(1);
+            Optional<User> userOpt = userService.findById(1); // Tạm thời dùng user cố định
             if (userOpt.isPresent()) {
                 deck.setUser(userOpt.get());
                 deck.setIsPublic(true);
                 deckService.save(deck);
-                String message = URLEncoder.encode("Bộ thẻ đã được tạo thành công!", StandardCharsets.UTF_8);
-                return "redirect:/decks?success=" + message;
+                return redirectWithMessage("/decks", "success", "Bộ thẻ đã được tạo thành công!");
             } else {
-                return "redirect:/decks?error=Không tìm thấy người dùng!";
+                return redirectWithMessage("/decks", "error", "Không tìm thấy người dùng!");
             }
         } catch (Exception e) {
-            return "redirect:/decks?error=Có lỗi xảy ra khi tạo bộ thẻ: " + e.getMessage();
+            return redirectWithMessage("/decks", "error", "Có lỗi xảy ra khi tạo bộ thẻ: " + e.getMessage());
         }
     }
 
@@ -75,11 +71,12 @@ public class DeckController {
             Optional<Deck> deckOpt = deckService.findById(id);
             if (deckOpt.isPresent()) {
                 model.addAttribute("deck", deckOpt.get());
-                return "deck-detail";
+                return "decks/deck-detail";
             } else {
-                return "redirect:/decks?error=Không tìm thấy bộ thẻ!";
+                return redirectWithMessage("/decks", "error", "Không tìm thấy bộ thẻ!");
             }
-        } catch (Exception e) {return "redirect:/decks?error=Có lỗi xảy ra: " + e.getMessage();
+        } catch (Exception e) {
+            return redirectWithMessage("/decks", "error", "Có lỗi xảy ra: " + e.getMessage());
         }
     }
 
@@ -89,12 +86,12 @@ public class DeckController {
             Optional<Deck> deckOpt = deckService.findById(id);
             if (deckOpt.isPresent()) {
                 model.addAttribute("deck", deckOpt.get());
-                return "deck-create"; // Sử dụng lại form tạo
+                return "decks/deck-create";
             } else {
-                return "redirect:/decks?error=Không tìm thấy bộ thẻ!";
+                return redirectWithMessage("/decks", "error", "Không tìm thấy bộ thẻ!");
             }
         } catch (Exception e) {
-            return "redirect:/decks?error=Có lỗi xảy ra: " + e.getMessage();
+            return redirectWithMessage("/decks", "error", "Có lỗi xảy ra: " + e.getMessage());
         }
     }
 
@@ -109,12 +106,12 @@ public class DeckController {
                 existing.setSubject(deck.getSubject());
                 existing.setIsPublic(deck.getIsPublic());
                 deckService.save(existing);
-                return "redirect:/decks?success=Bộ thẻ đã được cập nhật thành công!";
+                return redirectWithMessage("/decks", "success", "Bộ thẻ đã được cập nhật thành công!");
             } else {
-                return "redirect:/decks?error=Không tìm thấy bộ thẻ!";
+                return redirectWithMessage("/decks", "error", "Không tìm thấy bộ thẻ!");
             }
         } catch (Exception e) {
-            return "redirect:/decks?error=Có lỗi xảy ra khi cập nhật: " + e.getMessage();
+            return redirectWithMessage("/decks", "error", "Có lỗi xảy ra khi cập nhật: " + e.getMessage());
         }
     }
 
@@ -123,12 +120,12 @@ public class DeckController {
         try {
             if (deckService.findById(id).isPresent()) {
                 deckService.deleteById(id);
-                return "redirect:/decks?success=Bộ thẻ đã được xóa thành công!";
+                return redirectWithMessage("/decks", "success", "Bộ thẻ đã được xóa thành công!");
             } else {
-                return "redirect:/decks?error=Không tìm thấy bộ thẻ!";
+                return redirectWithMessage("/decks", "error", "Không tìm thấy bộ thẻ!");
             }
         } catch (Exception e) {
-            return "redirect:/decks?error=Có lỗi xảy ra khi xóa: " + e.getMessage();
+            return redirectWithMessage("/decks", "error", "Có lỗi xảy ra khi xóa: " + e.getMessage());
         }
     }
 }

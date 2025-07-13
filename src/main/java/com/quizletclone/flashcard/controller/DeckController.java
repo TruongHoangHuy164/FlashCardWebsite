@@ -9,6 +9,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
 import java.util.List;
 import java.util.Optional;
 
@@ -86,7 +87,7 @@ public class DeckController {
             Optional<Deck> deckOpt = deckService.findById(id);
             if (deckOpt.isPresent()) {
                 model.addAttribute("deck", deckOpt.get());
-                return "decks/deck-create";
+                return "decks/deck-edit";
             } else {
                 return redirectWithMessage("/decks", "error", "Không tìm thấy bộ thẻ!");
             }
@@ -96,22 +97,27 @@ public class DeckController {
     }
 
     @PostMapping("/{id}/edit")
-    public String updateDeck(@PathVariable Integer id, @ModelAttribute Deck deck) {
+    public String updateDeck(@PathVariable Integer id,
+                             @ModelAttribute Deck deck,
+                             Principal principal) {
         try {
-            Optional<Deck> existingDeck = deckService.findById(id);
-            if (existingDeck.isPresent()) {
-                Deck existing = existingDeck.get();
-                existing.setTitle(deck.getTitle());
-                existing.setDescription(deck.getDescription());
-                existing.setSubject(deck.getSubject());
-                existing.setIsPublic(deck.getIsPublic());
-                deckService.save(existing);
-                return redirectWithMessage("/decks", "success", "Bộ thẻ đã được cập nhật thành công!");
-            } else {
+            // Lấy deck cũ để lấy thông tin user
+            Optional<Deck> existingDeckOpt = deckService.findById(id);
+            if (existingDeckOpt.isEmpty()) {
                 return redirectWithMessage("/decks", "error", "Không tìm thấy bộ thẻ!");
             }
+
+            Deck existingDeck = existingDeckOpt.get();
+
+            // Giữ lại user cũ
+            deck.setUser(existingDeck.getUser());
+            deck.setCreatedAt(existingDeck.getCreatedAt());
+            deck.setId(id); // đảm bảo giữ đúng ID
+
+            deckService.save(deck);
+            return redirectWithMessage("/decks", "success", "Cập nhật thành công!");
         } catch (Exception e) {
-            return redirectWithMessage("/decks", "error", "Có lỗi xảy ra khi cập nhật: " + e.getMessage());
+            return redirectWithMessage("/decks", "error", "Có lỗi xảy ra: " + e.getMessage());
         }
     }
 

@@ -1,5 +1,7 @@
-<!DOCTYPE html>
-<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/layout}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -62,34 +64,7 @@
     </style>
 </head>
 <body>
-    <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-        <div class="container">
-            <a class="navbar-brand" href="/">
-                <i class="fas fa-brain me-2"></i>Flashcard App
-            </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav me-auto">
-                    <li class="nav-item">
-                        <a class="nav-link" href="/decks">Bộ thẻ</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/profile">Hồ sơ</a>
-                    </li>
-                </ul>
-                <ul class="navbar-nav">
-                    <li class="nav-item">
-                        <a class="nav-link" href="/logout">Đăng xuất</a>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </nav>
-
-    <!-- Deck Header -->
+<div layout:fragment="content">
     <section class="deck-header">
         <div class="container">
             <div class="row align-items-center">
@@ -105,6 +80,9 @@
                         <button class="btn btn-outline-light" onclick="addCard()">
                             <i class="fas fa-plus me-2"></i>Thêm thẻ
                         </button>
+                        <a th:href="@{/decks}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Quay lại Decks
+                        </a>
                     </div>
                 </div>
             </div>
@@ -125,7 +103,7 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <div class="text-center mt-4">
                     <div class="btn-group" role="group">
                         <button class="btn btn-danger" onclick="markAsHard()">
@@ -139,9 +117,10 @@
                         </button>
                     </div>
                 </div>
-                
+
                 <div class="text-center mt-3">
-                    <small class="text-muted">Thẻ <span id="currentCard">0</span> / <span id="totalCards">0</span></small>
+                    <small class="text-muted">Thẻ <span id="currentCard">0</span> / <span
+                            id="totalCards">0</span></small>
                 </div>
             </div>
         </div>
@@ -158,7 +137,7 @@
                     </button>
                 </div>
             </div>
-            
+
             <div class="row" th:if="${#lists.isEmpty(deck.flashcards)}">
                 <div class="col-12 text-center py-5">
                     <i class="fas fa-cards-blank fa-4x text-muted mb-3"></i>
@@ -169,7 +148,7 @@
                     </button>
                 </div>
             </div>
-            
+
             <div class="row g-3" th:if="${!#lists.isEmpty(deck.flashcards)}">
                 <div class="col-md-6" th:each="card : ${deck.flashcards}">
                     <div class="card">
@@ -177,7 +156,8 @@
                             <div class="d-flex justify-content-between align-items-start mb-3">
                                 <h6 class="card-title mb-0" th:text="${card.term}">Thuật ngữ</h6>
                                 <div class="dropdown">
-                                    <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="dropdown" aria-label="Tùy chọn">
+                                    <button class="btn btn-sm btn-outline-secondary" type="button"
+                                            data-bs-toggle="dropdown" aria-label="Tùy chọn">
                                         <i class="fas fa-ellipsis-v"></i>
                                     </button>
                                     <ul class="dropdown-menu">
@@ -197,44 +177,76 @@
             </div>
         </div>
     </div>
+</div>
+<!-- Deck Header -->
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        function showStudyMode() {
-            document.getElementById('studyMode').style.display = 'block';
-            document.getElementById('cardList').style.display = 'none';
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script th:inline="javascript">
+    let flashcards = /*[[${deck.flashcards}]]*/ [];
+    let currentIndex = 0;
+
+    function startStudy() {
+        if (flashcards.length === 0) {
+            alert("Không có thẻ để học.");
+            return;
         }
-        
-        function flipCard() {
-            const flashcard = document.querySelector('.flashcard');
-            flashcard.classList.toggle('flipped');
+        currentIndex = 0;
+        showStudyMode();
+        renderCard(currentIndex);
+    }
+
+    function showStudyMode() {
+        document.getElementById('studyMode').style.display = 'block';
+        document.getElementById('cardList').style.display = 'none';
+    }
+
+    function flipCard() {
+        const flashcard = document.querySelector('.flashcard');
+        flashcard.classList.toggle('flipped');
+    }
+
+    function renderCard(index) {
+        if (index >= flashcards.length) return;
+
+        document.getElementById('cardTerm').textContent = flashcards[index].term;
+        document.getElementById('cardDefinition').textContent = flashcards[index].definition;
+        document.getElementById('currentCard').textContent = index + 1;
+        document.getElementById('totalCards').textContent = flashcards.length;
+
+        const flashcard = document.querySelector('.flashcard');
+        flashcard.classList.remove('flipped');
+    }
+
+    function markAsHard() {
+        console.log("Đánh dấu KHÓ:", flashcards[currentIndex]);
+        nextCard();
+    }
+
+    function markAsMedium() {
+        console.log("Đánh dấu TRUNG BÌNH:", flashcards[currentIndex]);
+        nextCard();
+    }
+
+    function markAsEasy() {
+        console.log("Đánh dấu DỄ:", flashcards[currentIndex]);
+        nextCard();
+    }
+
+    function nextCard() {
+        currentIndex++;
+        if (currentIndex < flashcards.length) {
+            renderCard(currentIndex);
+        } else {
+            alert("Bạn đã hoàn thành tất cả các thẻ!");
+            document.getElementById('studyMode').style.display = 'none';
+            document.getElementById('cardList').style.display = 'block';
         }
-        
-        function markAsHard() {
-            // Logic xử lý thẻ khó
-            nextCard();
-        }
-        
-        function markAsMedium() {
-            // Logic xử lý thẻ trung bình
-            nextCard();
-        }
-        
-        function markAsEasy() {
-            // Logic xử lý thẻ dễ
-            nextCard();
-        }
-        
-        function nextCard() {
-            // Logic chuyển thẻ tiếp theo
-            const flashcard = document.querySelector('.flashcard');
-            flashcard.classList.remove('flipped');
-        }
-        
-        function addCard() {
-            // Logic thêm thẻ mới
-            alert('Chức năng thêm thẻ sẽ được phát triển');
-        }
-    </script>
+    }
+
+    function addCard() {
+        const deckId = /*[[${deck.id}]]*/ '';
+        window.location.href = `/cards/new?deckId=${deckId}`;
+    }
+</script>
 </body>
-</html> 
+</html>

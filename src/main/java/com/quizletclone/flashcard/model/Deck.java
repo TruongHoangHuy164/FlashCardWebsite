@@ -3,6 +3,8 @@ package com.quizletclone.flashcard.model;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.ArrayList;
 
 @Entity
 @Table(name = "decks")
@@ -31,8 +33,11 @@ public class Deck {
 
     private LocalDateTime createdAt;
 
+    @OneToMany(mappedBy = "deck", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Flashcard> flashcards = new ArrayList<>();
+
     @PrePersist
     public void prePersist() {
         createdAt = LocalDateTime.now();
     }
-} 
+}

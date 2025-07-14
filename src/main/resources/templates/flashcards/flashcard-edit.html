@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chỉnh sửa Flashcard</title>
+</head>
+<body>
+<h2>Chỉnh sửa Flashcard</h2>
+
+<form th:action="@{'/flashcards/edit/' + ${flashcard.id}}" th:object="${flashcard}" method="post">
+    <!-- hidden để giữ deck.id -->
+    <input type="hidden" th:field="*{deck.id}" />
+
+    <label for="term">Term:</label>
+    <textarea id="term" name="term" th:field="*{term}" placeholder="Nhập từ khóa" title="Term" required></textarea><br>
+
+    <label for="definition">Definition:</label>
+    <textarea id="definition" name="definition" th:field="*{definition}" placeholder="Nhập định nghĩa" title="Definition" required></textarea><br>
+
+    <label for="imageUrl">Image URL:</label>
+    <input type="text" id="imageUrl" name="imageUrl" th:field="*{imageUrl}" placeholder="Nhập URL hình ảnh" title="Image URL"><br>
+
+    <button type="submit">Cập nhật</button>
+</form>
+
+<a th:href="@{'/decks/' + ${flashcard.deck.id}}">Quay lại Deck</a>
+</body>
+</html>

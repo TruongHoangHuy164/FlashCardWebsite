@@ -1,19 +1,25 @@
 package com.quizletclone.flashcard.controller;
 
-import com.quizletclone.flashcard.model.Deck;
-import com.quizletclone.flashcard.model.User;
-import com.quizletclone.flashcard.service.DeckService;
-import com.quizletclone.flashcard.service.UserService;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
-
 import java.security.Principal;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+
+import com.quizletclone.flashcard.model.Deck;
+import com.quizletclone.flashcard.model.User;
+import com.quizletclone.flashcard.service.DeckService;
+import com.quizletclone.flashcard.service.UserService;
 import static com.quizletclone.flashcard.util.UrlHelper.redirectWithMessage;
+
+import lombok.RequiredArgsConstructor;
 
 @Controller
 @RequestMapping("/decks")
@@ -24,8 +30,8 @@ public class DeckController {
 
     @GetMapping
     public String listDecks(@RequestParam(required = false) String success,
-                            @RequestParam(required = false) String error,
-                            Model model) {
+            @RequestParam(required = false) String error,
+            Model model) {
         try {
             List<Deck> decks = deckService.findPublicDecks();
             model.addAttribute("decks", decks);
@@ -98,8 +104,8 @@ public class DeckController {
 
     @PostMapping("/{id}/edit")
     public String updateDeck(@PathVariable Integer id,
-                             @ModelAttribute Deck deck,
-                             Principal principal) {
+            @ModelAttribute Deck deck,
+            Principal principal) {
         try {
             // Lấy deck cũ để lấy thông tin user
             Optional<Deck> existingDeckOpt = deckService.findById(id);

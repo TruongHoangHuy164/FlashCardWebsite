@@ -162,36 +162,7 @@
 
                 <div class="row g-4" th:if="${!#lists.isEmpty(deck.flashcards)}">
                     <div class="col-md-6" th:each="card : ${deck.flashcards}">
-                        <div class="flashcard" onmouseenter="this.classList.add('flipped')"
-                            onmouseleave="this.classList.remove('flipped')">
-                            <div class="flashcard-inner">
-                                <!-- Mặt trước -->
-                                <div class="flashcard-front">
-                                    <h5 th:text="${card.term}">Thuật ngữ</h5>
-                                </div>
-
-                                <!-- Mặt sau -->
-                                <div class="flashcard-back">
-                                    <p th:text="${card.definition}">Định nghĩa</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Nút chỉnh sửa và xoá -->
-                        <div class="text-end mt-2">
-                            <div class="btn-group">
-                                <a class="btn btn-sm btn-outline-secondary"
-                                    th:href="@{'/flashcards/edit/' + ${card.id}}">
-                                    <i class="fas fa-edit"></i> Sửa
-                                </a>
-                                <form th:action="@{'/flashcards/delete/' + ${card.id}}" method="post"
-                                    onsubmit="return confirm('Bạn có chắc muốn xóa thẻ này?');">
-                                    <button type="submit" class="btn btn-sm btn-outline-danger">
-                                        <i class="fas fa-trash"></i> Xoá
-                                    </button>
-                                </form>
-                            </div>
-                        </div>
+                        <div th:replace="flashcards/flashcard-item :: flashcardItem(card=${card})"></div>
                     </div>
                 </div>
 

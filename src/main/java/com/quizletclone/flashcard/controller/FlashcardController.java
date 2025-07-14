@@ -9,6 +9,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.quizletclone.flashcard.model.Deck;
 import com.quizletclone.flashcard.model.Flashcard;
@@ -36,11 +38,23 @@ public class FlashcardController {
         return "flashcards/flashcard-add";
     }
 
-    // Xử lý khi submit form tạo mới
     @PostMapping("/create")
-    public String createFlashcard(@ModelAttribute("flashcard") Flashcard flashcard) {
+    public String createFlashcard(@ModelAttribute Flashcard flashcard,
+            @RequestParam("deckId") Integer deckId,
+            @RequestParam(value = "imageFile", required = false) MultipartFile imageFile,
+            RedirectAttributes redirectAttributes) {
+        // Sửa ở đây dùng deckRepository thay vì deckService
+        Deck deck = deckRepository.findById(deckId)
+                .orElseThrow(() -> new IllegalArgumentException("Invalid deck ID"));
+
+        flashcard.setDeck(deck); // Gán deck để tránh lỗi null
+
+        // TODO: xử lý ảnh nếu có
+
         flashcardService.save(flashcard);
-        return "redirect:/decks/" + flashcard.getDeck().getId(); // Chuyển hướng về trang chi tiết Deck
+
+        redirectAttributes.addFlashAttribute("success", "Đã thêm thẻ thành công!");
+        return "redirect:/decks/" + deckId;
     }
 
     @GetMapping("/edit/{id}")

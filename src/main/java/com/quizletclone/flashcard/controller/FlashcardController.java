@@ -25,13 +25,15 @@ public class FlashcardController {
     private FlashcardService flashcardService;
 
     @Autowired
-    private DeckRepository deckRepository; // Để load danh sách Deck
+    private DeckRepository deckRepository;
 
-    // Form tạo mới Flashcard
+    // Form tạo flashcard mới
     @GetMapping("/create")
     public String showCreateForm(@RequestParam("deckId") Integer deckId, Model model) {
+        Deck deck = deckRepository.findById(deckId)
+                .orElseThrow(() -> new IllegalArgumentException("Deck không tồn tại"));
+
         Flashcard flashcard = new Flashcard();
-        Deck deck = deckRepository.findById(deckId).orElseThrow(() -> new IllegalArgumentException("Invalid deck ID"));
         flashcard.setDeck(deck);
 
         model.addAttribute("flashcard", flashcard);
@@ -43,33 +45,35 @@ public class FlashcardController {
             @RequestParam("deckId") Integer deckId,
             @RequestParam(value = "imageFile", required = false) MultipartFile imageFile,
             RedirectAttributes redirectAttributes) {
-        // Sửa ở đây dùng deckRepository thay vì deckService
         Deck deck = deckRepository.findById(deckId)
-                .orElseThrow(() -> new IllegalArgumentException("Invalid deck ID"));
+                .orElseThrow(() -> new IllegalArgumentException("Deck không tồn tại"));
 
-        flashcard.setDeck(deck); // Gán deck để tránh lỗi null
+        flashcard.setDeck(deck);
 
-        // TODO: xử lý ảnh nếu có
+        // TODO: xử lý ảnh ở đây nếu cần
 
         flashcardService.save(flashcard);
-
         redirectAttributes.addFlashAttribute("success", "Đã thêm thẻ thành công!");
+
         return "redirect:/decks/" + deckId;
     }
 
+    // Form chỉnh sửa flashcard
     @GetMapping("/edit/{id}")
     public String showEditForm(@PathVariable("id") Integer id, Model model) {
         Flashcard flashcard = flashcardService.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Invalid flashcard ID"));
+                .orElseThrow(() -> new IllegalArgumentException("Flashcard không tồn tại"));
 
         model.addAttribute("flashcard", flashcard);
-        return "flashcards/flashcard-edit"; // <--- sử dụng edit.html
+        return "flashcards/flashcard-edit";
     }
 
     @PostMapping("/edit/{id}")
-    public String updateFlashcard(@PathVariable("id") Integer id, @ModelAttribute("flashcard") Flashcard updatedCard) {
+    public String updateFlashcard(@PathVariable("id") Integer id,
+            @ModelAttribute("flashcard") Flashcard updatedCard,
+            RedirectAttributes redirectAttributes) {
         Flashcard existing = flashcardService.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Invalid flashcard ID"));
+                .orElseThrow(() -> new IllegalArgumentException("Flashcard không tồn tại"));
 
         existing.setTerm(updatedCard.getTerm());
         existing.setDefinition(updatedCard.getDefinition());
@@ -77,18 +81,19 @@ public class FlashcardController {
 
         flashcardService.save(existing);
 
+        redirectAttributes.addFlashAttribute("success", "Cập nhật thẻ thành công!");
         return "redirect:/decks/" + existing.getDeck().getId();
     }
 
-    // ==== XOÁ ====
     @PostMapping("/delete/{id}")
-    public String deleteFlashcard(@PathVariable("id") Integer id) {
+    public String deleteFlashcard(@PathVariable("id") Integer id, RedirectAttributes redirectAttributes) {
         Flashcard flashcard = flashcardService.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Invalid flashcard ID"));
+                .orElseThrow(() -> new IllegalArgumentException("Flashcard không tồn tại"));
 
         Integer deckId = flashcard.getDeck().getId();
         flashcardService.deleteById(id);
 
+        redirectAttributes.addFlashAttribute("success", "Đã xóa thẻ thành công!");
         return "redirect:/decks/" + deckId;
     }
 }

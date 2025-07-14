@@ -78,6 +78,11 @@
     <div layout:fragment="content">
         <section class="deck-header">
             <div class="container">
+                <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+                    <span th:text="${success}">Thành công</span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+
                 <div class="row align-items-center">
                     <div class="col-md-8">
                         <h1 class="fw-bold" th:text="${deck.title}">Tên bộ thẻ</h1>

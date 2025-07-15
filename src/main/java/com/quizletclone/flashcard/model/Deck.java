@@ -1,10 +1,13 @@
 package com.quizletclone.flashcard.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
+
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "decks")
@@ -12,6 +15,7 @@ import java.util.ArrayList;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@JsonIgnoreProperties({ "hibernateLazyInitializer", "handler" }) // ✅ Giúp Jackson tránh lỗi proxy
 public class Deck {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -27,6 +31,7 @@ public class Deck {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
+    @JsonIgnoreProperties({ "hibernateLazyInitializer", "handler" }) // ✅ Tránh lỗi khi trả JSON user
     private User user;
 
     private Boolean isPublic;
@@ -34,6 +39,7 @@ public class Deck {
     private LocalDateTime createdAt;
 
     @OneToMany(mappedBy = "deck", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore // ✅ Tránh vòng lặp hoặc dữ liệu nặng
     private List<Flashcard> flashcards = new ArrayList<>();
 
     @PrePersist

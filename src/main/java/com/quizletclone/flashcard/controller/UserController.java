@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import com.quizletclone.flashcard.model.User;
 import com.quizletclone.flashcard.service.UserService;
 
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 
 @Controller
@@ -15,27 +16,29 @@ public class UserController {
     private final UserService userService;
 
     @GetMapping("/profile")
-    public String showProfile(Model model) {
+    public String showProfile(HttpSession session, Model model) {
         try {
-            // TODO: Lấy user từ session
-            // Tạm thời lấy user đầu tiên trong database
-            var userOpt = userService.findById(1);
+            // Lấy user từ session
+            User loggedInUser = (User) session.getAttribute("loggedInUser");
+
+            if (loggedInUser == null) {
+                // Nếu chưa đăng nhập, chuyển hướng đến trang đăng nhập
+                return "redirect:/login?error=Vui lòng đăng nhập để xem hồ sơ.";
+            }
+
+            // Optional: Lấy lại user từ DB để đảm bảo dữ liệu mới nhất (nếu cần)
+            var userOpt = userService.findById(loggedInUser.getId());
             if (userOpt.isPresent()) {
                 model.addAttribute("user", userOpt.get());
             } else {
-                // Tạo user mẫu nếu không có user nào
-                User sampleUser = new User();
-                sampleUser.setId(1);
-                sampleUser.setUsername("demo_user");
-                sampleUser.setEmail("demo@example.com");
-                sampleUser.setAvatarUrl("https://via.placeholder.com/100x100/667eea/ffffff?text=U");
-                model.addAttribute("user", sampleUser);
+                model.addAttribute("user", loggedInUser); // fallback từ session
             }
-            return "profile";
+
+            return "user/profile";
 
         } catch (Exception e) {
             model.addAttribute("error", "Có lỗi xảy ra: " + e.getMessage());
-            return "profile";
+            return "user/profile";
         }
     }
 }

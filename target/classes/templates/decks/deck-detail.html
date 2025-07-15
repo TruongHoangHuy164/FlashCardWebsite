@@ -90,9 +90,6 @@
                     </div>
                     <div class="col-md-4 text-md-end">
                         <div class="d-flex gap-2 justify-content-md-end">
-                            <button class="btn btn-light" onclick="startStudy()">
-                                <i class="fas fa-play me-2"></i>Bắt đầu học
-                            </button>
                             <a th:href="@{/flashcards/create(deckId=${deck.id})}" class="btn btn-outline-light">
                                 <i class="fas fa-plus me-2"></i>Thêm thẻ
                             </a>
@@ -105,52 +102,13 @@
             </div>
         </section>
 
-        <div class="container mt-4">
-            <!-- Study Mode -->
-            <div id="studyMode" class="row" style="display: none;">
-                <div class="col-md-8 mx-auto">
-                    <div class="flashcard" onclick="flipCard()">
-                        <div class="flashcard-inner">
-                            <div class="flashcard-front">
-                                <h3 id="cardTerm">Nhấn để bắt đầu học</h3>
-                            </div>
-                            <div class="flashcard-back">
-                                <h3 id="cardDefinition">Định nghĩa</h3>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="text-center mt-4">
-                        <div class="btn-group" role="group">
-                            <button class="btn btn-danger" onclick="markAsHard()">
-                                <i class="fas fa-times me-2"></i>Khó
-                            </button>
-                            <button class="btn btn-warning" onclick="markAsMedium()">
-                                <i class="fas fa-minus me-2"></i>Trung bình
-                            </button>
-                            <button class="btn btn-success" onclick="markAsEasy()">
-                                <i class="fas fa-check me-2"></i>Dễ
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="text-center mt-3">
-                        <small class="text-muted">Thẻ <span id="currentCard">0</span> / <span
-                                id="totalCards">0</span></small>
-                    </div>
-                </div>
-            </div>
+        <div class="container mt-4">    
 
             <!-- Card List -->
             <div id="cardList">
                 <div class="row mb-4">
                     <div class="col-md-6">
                         <h4>Danh sách thẻ</h4>
-                    </div>
-                    <div class="col-md-6 text-md-end">
-                        <button class="btn btn-primary" onclick="showStudyMode()">
-                            <i class="fas fa-play me-2"></i>Học ngay
-                        </button>
                     </div>
                 </div>
 
@@ -176,87 +134,6 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script th:inline="javascript">
-        document.addEventListener("DOMContentLoaded", function () {
-            let flashcards = /*[[${deck.flashcards}]]*/[];
-            let currentIndex = 0;
-
-            function startStudy() {
-                if (flashcards.length === 0) {
-                    alert("Không có thẻ để học.");
-                    return;
-                }
-                currentIndex = 0;
-                showStudyMode();
-                renderCard(currentIndex);
-            }
-
-            function showStudyMode() {
-                document.getElementById('studyMode').style.display = 'block';
-                document.getElementById('cardList').style.display = 'none';
-            }
-
-            function flipCard() {
-                const flashcard = document.querySelector('.flashcard');
-                if (flashcard) {
-                    flashcard.classList.toggle('flipped');
-                }
-            }
-
-            function renderCard(index) {
-                if (index >= flashcards.length) return;
-
-                document.getElementById('cardTerm').textContent = flashcards[index].term;
-                document.getElementById('cardDefinition').textContent = flashcards[index].definition;
-                document.getElementById('currentCard').textContent = index + 1;
-                document.getElementById('totalCards').textContent = flashcards.length;
-
-                const flashcard = document.querySelector('.flashcard');
-                if (flashcard) {
-                    flashcard.classList.remove('flipped');
-                }
-            }
-
-            function markAsHard() {
-                console.log("Đánh dấu KHÓ:", flashcards[currentIndex]);
-                nextCard();
-            }
-
-            function markAsMedium() {
-                console.log("Đánh dấu TRUNG BÌNH:", flashcards[currentIndex]);
-                nextCard();
-            }
-
-            function markAsEasy() {
-                console.log("Đánh dấu DỄ:", flashcards[currentIndex]);
-                nextCard();
-            }
-
-            function nextCard() {
-                currentIndex++;
-                if (currentIndex < flashcards.length) {
-                    renderCard(currentIndex);
-                } else {
-                    alert("Bạn đã hoàn thành tất cả các thẻ!");
-                    document.getElementById('studyMode').style.display = 'none';
-                    document.getElementById('cardList').style.display = 'block';
-                }
-            }
-
-            // Gắn sự kiện nếu cần (ví dụ: nút bắt đầu học)
-            const startBtn = document.getElementById('startBtn');
-            if (startBtn) {
-                startBtn.addEventListener('click', startStudy);
-            }
-
-            // Các hàm có thể gắn ra window nếu gọi từ HTML
-            window.startStudy = startStudy;
-            window.flipCard = flipCard;
-            window.markAsHard = markAsHard;
-            window.markAsMedium = markAsMedium;
-            window.markAsEasy = markAsEasy;
-        });
-    </script>
 </body>
 
 </html>

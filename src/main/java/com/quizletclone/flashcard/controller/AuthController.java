@@ -6,15 +6,19 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.quizletclone.flashcard.model.User;
 import com.quizletclone.flashcard.service.UserService;
+import static com.quizletclone.flashcard.util.UrlHelper.redirectWithMessage;
 
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 
 @Controller
 @RequiredArgsConstructor
 public class AuthController {
+
     private final UserService userService;
 
     @GetMapping("/register")
@@ -26,22 +30,18 @@ public class AuthController {
     @PostMapping("/register")
     public String register(@ModelAttribute User user, Model model) {
         try {
-            // Kiểm tra username đã tồn tại
             if (userService.findByUsername(user.getUsername()).isPresent()) {
                 model.addAttribute("error", "Tên đăng nhập đã tồn tại!");
                 return "auth/register";
             }
 
-            // Kiểm tra email đã tồn tại
             if (userService.findByEmail(user.getEmail()).isPresent()) {
                 model.addAttribute("error", "Email đã tồn tại!");
                 return "auth/register";
             }
 
-            // Lưu user mới
             userService.save(user);
             return "redirect:/login?success=Đăng ký thành công! Vui lòng đăng nhập.";
-
         } catch (Exception e) {
             model.addAttribute("error", "Có lỗi xảy ra khi đăng ký: " + e.getMessage());
             return "auth/register";
@@ -49,25 +49,32 @@ public class AuthController {
     }
 
     @GetMapping("/login")
-    public String showLoginForm(@RequestParam(required = false) String success, Model model) {
+    public String showLoginForm(@RequestParam(required = false) String success,
+            @RequestParam(required = false) String error,
+            Model model) {
         if (success != null) {
             model.addAttribute("success", success);
+        }
+        if (error != null) {
+            model.addAttribute("error", error);
         }
         return "auth/login";
     }
 
     @PostMapping("/login")
-    public String login(@RequestParam String username, @RequestParam String password, Model model) {
+    public String login(@RequestParam String username,
+            @RequestParam String password,
+            Model model,
+            HttpSession session, RedirectAttributes redirectAttributes) {
         try {
-            // Tìm user trong database
             var userOpt = userService.findByUsername(username);
 
             if (userOpt.isPresent()) {
                 User user = userOpt.get();
-                // Kiểm tra password (trong thực tế nên hash password)
+
                 if (user.getPassword().equals(password)) {
-                    // TODO: Tạo session cho user
-                    return "redirect:/decks";
+                    session.setAttribute("loggedInUser", user); // Lưu session
+                    return redirectWithMessage("/decks", redirectAttributes, "success", "Đăng nhập thành công!");
                 } else {
                     model.addAttribute("error", "Mật khẩu không đúng!");
                 }
@@ -84,8 +91,8 @@ public class AuthController {
     }
 
     @GetMapping("/logout")
-    public String logout() {
-        // TODO: Xóa session
-        return "redirect:/";
+    public String logout(HttpSession session, RedirectAttributes redirectAttributes) {
+        session.invalidate(); // Xóa session
+        return redirectWithMessage("/decks", redirectAttributes, "success", "Đăng xuất thành công!");
     }
 }

@@ -53,10 +53,9 @@
             <div class="col-md-4">
                 <div class="profile-card p-4 mb-4">
                     <div class="text-center mb-4">
-                        <img th:if="${user.avatarUrl}" th:src="${user.avatarUrl}" alt="Avatar" class="avatar mb-3">
-                        <img th:unless="${user.avatarUrl}"
-                            src="https://via.placeholder.com/100x100/667eea/ffffff?text=U" alt="Default Avatar"
-                            class="avatar mb-3">
+                        <img th:if="${user.avatarUrl}" th:src="${user.avatarUrl}" alt="Avatar" class="avatar mb-3" />
+                        <img th:unless="${user.avatarUrl}" th:src="@{/upload/avt-default.webp}" alt="Default Avatar"
+                            class="avatar mb-3" />
                         <h4 class="fw-bold" th:text="${user.username}">Tên người dùng</h4>
                         <p class="text-muted" th:text="${user.email}">email@example.com</p>
                     </div>

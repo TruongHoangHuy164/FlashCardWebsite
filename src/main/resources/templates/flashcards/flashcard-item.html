@@ -1,6 +1,6 @@
 <!-- Chỉ chứa nội dung của flashcard -->
 <div th:fragment="flashcardItem(card)">
-    <div class="flashcard" onclick="this.classList.toggle('flipped')">
+    <div class="flashcard shadow-lg rounded-4" onclick="this.classList.toggle('flipped')">
         <div class="flashcard-inner">
             <div class="flashcard-front">
                 <h5 th:text="${card.term}">Thuật ngữ</h5>
